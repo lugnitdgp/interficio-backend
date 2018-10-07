@@ -15,15 +15,6 @@ class Player(models.Model):
     def __str__(self):
         return self.user.username
 
-class Level(models.Model):
-    level_no = models.IntegerField(default=0)
-    title = models.CharField(max_length=255)
-    ques = models.TextField()
-    ans = models.CharField(max_length=255)
-
-    def __str__(self):
-        return self.level_no
-
 class Location(models.Model):
     name = models.CharField(max_length=255)
     lat = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
@@ -31,3 +22,13 @@ class Location(models.Model):
 
     def __str__(self):
         return self.name
+
+class Level(models.Model):
+    level_no = models.IntegerField(default=0)
+    title = models.CharField(max_length=255)
+    ques = models.TextField()
+    ans = models.CharField(max_length=255)
+    location = models.ForeignKey(Location, on_delete=models.CASCADE, blank=True, null=True)
+
+    def __str__(self):
+        return self.level_no
