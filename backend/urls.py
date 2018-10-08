@@ -11,4 +11,6 @@ urlpatterns = router.urls;
 
 urlpatterns += [
     path('leaderboard/', views.leaderboard, name="leaderborad"),
+    path('auth/register/', views.RegistrationAPI.as_view(), name="auth-reg"),
+    path('auth/login/', views.LoginAPI.as_view(), name="auth-login"),
 ]
