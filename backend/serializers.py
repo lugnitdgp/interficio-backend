@@ -4,16 +4,23 @@ from django.contrib.auth import authenticate
 from backend.models import Player, Level, Location
 
 class CreateUserSerializer(serializers.ModelSerializer):
+    email = serializers.EmailField(write_only=True)
+    name = serializers.CharField(write_only=True)
     class Meta:
         model = User
-        fields = ('username', 'email', 'password')
+        fields = ('username', 'password','email','name')
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
         user = User.objects.create_user(validated_data['username'],
-                                        validated_data['email'],
+                                        None,
                                         validated_data['password'])
+
+        player = Player.objects.create(user = user,
+                                        name = validated_data['name'],
+                                        email = validated_data['email'])
         return user
+
 
 class LoginUserSerializer(serializers.Serializer):
     username = serializers.CharField()
@@ -28,7 +35,7 @@ class LoginUserSerializer(serializers.Serializer):
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('username', 'email')
+        fields = ('username',)
 
 class PlayerSerializer(serializers.ModelSerializer):
     user_name = serializers.SerializerMethodField('get_username')
@@ -39,6 +46,12 @@ class PlayerSerializer(serializers.ModelSerializer):
     class Meta:
         model = Player
         fields = ('user_name','name','email','score','rank','current_level')
+
+    # def create(self, validated_data):
+    #     user = Player.objects.create_player(validated_data['username'],
+    #                                     None,
+    #                                     validated_data['password'])
+    #     return user
 
 class LevelSerializer(serializers.ModelSerializer):
     class Meta:
