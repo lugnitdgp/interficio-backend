@@ -5,7 +5,6 @@ from rest_framework import routers
 router = routers.DefaultRouter()
 
 router.register(r'users', views.UserViewSet, base_name='user')
-router.register(r'level', views.LevelViewSet)
 
 urlpatterns = router.urls;
 
@@ -13,4 +12,8 @@ urlpatterns += [
     path('leaderboard/', views.leaderboard, name="leaderborad"),
     path('auth/register/', views.RegistrationAPI.as_view(), name="auth-reg"),
     path('auth/login/', views.LoginAPI.as_view(), name="auth-login"),
+    path('player/', views.PlayerDetail.as_view(), name="palyer-detail"),
+    path('getlevel/', views.GetLevel.as_view(), name="get-level"),
+    path('submit/ans/', views.SubmitLevelAns.as_view(), name="submit-ans"),
+    path('submit/location/', views.SubmitLocation.as_view(), name="submit-location"),
 ]

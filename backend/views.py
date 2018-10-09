@@ -9,9 +9,27 @@ from rest_framework.response import Response
 from rest_framework import authentication, permissions
 from rest_framework.views import APIView
 
-import json
+import json, math
 from backend.serializers import UserSerializer, LevelSerializer, PlayerSerializer, CreateUserSerializer, LoginUserSerializer
 
+
+
+def checkRadius(lat,long,level):
+    earth_r = 6371
+    l_lat = level.location.lat
+    l_long = level.location.long
+    r = level.radius
+    dlat = math.radians(l_lat-lat) #distange 
+    dlong = math.radians(l_long-long) #distance
+
+    a = math.sin(dlat/2)*math.sin(dlat/2) + math.cos(math.radians(lat))*math.cos(math.radians(l_lat))*math.sin(dlong/2)*math.sin(dlong/2)
+    c = 2 * math.asin(math.sqrt(a))
+    d = earth_r*c
+
+    if(d<r):
+        return True
+    else:
+        return False
 
 #DRF viewset and serializers
 class UserViewSet(viewsets.ViewSet):
@@ -66,13 +84,16 @@ class PlayerDetail(APIView):
 class GetLevel(APIView):
     def get(self,request,format=None):
         user_id = request.user.pk
-        player = Player.objects.get(user=request.user)
-        current_level = player.current_level
-        if (current_level >= 0 ):
-            next_level = current_level + 1
-        level = Level.objects.get(level_no=next_level)
-        serializer = LevelSerializer(level)
-        return Response(serializer.data)
+        try:
+            player = Player.objects.get(user=request.user)
+            current_level = player.current_level
+            if (current_level >= 0 ):
+                next_level = current_level + 1
+            level = Level.objects.get(level_no=next_level)
+            serializer = LevelSerializer(level)
+            return Response(serializer.data)
+        except (Player.DoesNotExist or Level.DoesNotExist):
+            return Response({"data": None})
 
 class SubmitLevelAns(APIView):
     def post(self, request, *args, **kwargs):
@@ -80,11 +101,38 @@ class SubmitLevelAns(APIView):
         _ans = data.get("answer",None)
         _level = data.get("level_no",None)
         msg = {"success" : False}
-        if ans and level_no:
-            player = Player.objects.get(user=request.user)
-            level = Level.objects.get(level_no=_level)
-            if player and (_ans == level.ans ):
+        if _ans and _level:
+            try:
+                player = Player.objects.get(user=request.user)
+                level = Level.objects.get(level_no=player.current_level+1)
+            except (Player.DoesNotExist or Level.DoesNotExist):
+                player,level = None,None
+            if player and (_ans == level.ans ) and (player.current_level == level.level_no-1):
+                player.map_qs = True
+                level.map_bool = True
                 msg = {"success" : True}
+
+        return Response(msg)
+
+class SubmitLocation(APIView):
+    def post(self, request, *args, **kwargs):
+        data = request.data
+        _lat = data.get("lat",None)
+        _long = data.get("long",None)
+        _level = data.get("level_no",None)
+        msg = {"success" : False}
+        if _lat and _long:
+            try:
+                player = Player.objects.get(user=request.user)
+                level = Level.objects.get(level_no=player.current_level+1)
+            except (Player.DoesNotExist or Level.DoesNotExist):
+                player,level = None,None
+            if player.map_qs and level.map_bool:
+                if checkRadius(_lat, _long, level):
+                    player.current_level += 1
+                    player.map_qs = False
+                    level.map_bool = False
+                    msg = {"success" : True}
         return Response(msg)
 
 def leaderboard(req):

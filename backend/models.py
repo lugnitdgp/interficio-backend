@@ -11,6 +11,7 @@ class Player(models.Model):
     ##For internal user must not be on API
     rank = models.IntegerField(default=0)
     current_level = models.IntegerField(default=0)
+    map_qs = models.BooleanField(default=False)
 
     def __str__(self):
         return self.user.username
@@ -30,7 +31,7 @@ class Level(models.Model):
     ans = models.CharField(max_length=255)
     map_bool = models.BooleanField(default=False)
     location = models.ForeignKey(Location, on_delete=models.CASCADE, blank=True, null=True)
-    radius = models.DecimalField(max_digits=9, null=True, blank=True)
+    radius = models.DecimalField(max_digits=9,decimal_places=6,help_text="Put radius in KMs", null=True, blank=True)
 
     def __str__(self):
         return self.level_no
