@@ -25,13 +25,14 @@ class Location(models.Model):
         return self.name
 
 class Level(models.Model):
-    level_no = models.IntegerField(default=0)
+    level_no = models.PositiveSmallIntegerField(unique=True)
     title = models.CharField(max_length=255)
     ques = models.TextField()
     ans = models.CharField(max_length=255)
+    points = models.IntegerField(default=0)
     map_bool = models.BooleanField(default=False)
     location = models.ForeignKey(Location, on_delete=models.CASCADE, blank=True, null=True)
     radius = models.DecimalField(max_digits=9,decimal_places=6,help_text="Put radius in KMs", null=True, blank=True)
 
     def __str__(self):
-        return self.level_no
+        return str(self.level_no)

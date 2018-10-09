@@ -31,14 +31,14 @@ class UserSerializer(serializers.ModelSerializer):
         fields = ('username', 'email')
 
 class PlayerSerializer(serializers.ModelSerializer):
-    username = serializers.SerializerMethodField('get_username')
+    user_name = serializers.SerializerMethodField('get_username')
 
     def get_username(self, obj):
         return obj.user.username
 
     class Meta:
         model = Player
-        fields = ('username','name','email','score','rank','current_level')
+        fields = ('user_name','name','email','score','rank','current_level')
 
 class LevelSerializer(serializers.ModelSerializer):
     class Meta:
