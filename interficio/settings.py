@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'backend',
     'rest_framework',
     'knox',
+    'corsheaders',
 
 ]
 
@@ -117,6 +118,7 @@ REST_FRAMEWORK = {
 
 GOOGLE_MAPS_API_KEY = config('GOOGLE_MAPS_API_KEY')
 
+CORS_ORIGIN_ALLOW_ALL = True
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.0/topics/i18n/
