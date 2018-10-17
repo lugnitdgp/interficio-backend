@@ -97,7 +97,11 @@ class GetLevel(APIView):
             level = Level.objects.get(level_no=next_level)
             serializer = LevelSerializer(level)
             return Response(serializer.data)
-        except (Player.DoesNotExist, Level.DoesNotExist):
+        except Player.DoesNotExist:
+            return Response({"data": None})
+        except Level.DoesNotExist:
+            if player.current_level == len(Level.objects.all()):
+                return Response({"level": "ALLDONE"})
             return Response({"data": None})
 
 class SubmitLevelAns(APIView):
