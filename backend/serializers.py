@@ -37,18 +37,23 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = ('username',)
     
-class ChangePasswordSerializer(serializers.ModelSerializer):
+class ChangePasswordSerializer(serializers.Serializer):
+    old_password = serializers.CharField()
     new_password = serializers.CharField(write_only=True)
 
-    class Meta:
-        model = User
-        fields = ('username','password','new_password')
-    
+    def validate(self,instance,data):
+        print("IM VADILATING")
+        user = instance
+        if user.check_password(data['old_passowrd']):
+            return data
+        else:
+            raise serializers.ValidationError("Old password validation error.")     
+        
     def update(self, instance, validated_data):
         instance.set_password(validated_data['new_password'])
         instance.save()
         return instance
-        
+
 class PlayerSerializer(serializers.ModelSerializer):
     user_name = serializers.SerializerMethodField('get_username')
 
