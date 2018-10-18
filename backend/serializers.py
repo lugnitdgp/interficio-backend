@@ -47,11 +47,6 @@ class PlayerSerializer(serializers.ModelSerializer):
         model = Player
         fields = ('user_name','name','email','score','rank','current_level')
 
-    # def create(self, validated_data):
-    #     user = Player.objects.create_player(validated_data['username'],
-    #                                     None,
-    #                                     validated_data['password'])
-    #     return user
 
 class LevelSerializer(serializers.ModelSerializer):
     class Meta:
