@@ -36,7 +36,19 @@ class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('username',)
+    
+class ChangePasswordSerializer(serializers.ModelSerializer):
+    new_password = serializers.CharField(write_only=True)
 
+    class Meta:
+        model = User
+        fields = ('username','password','new_password')
+    
+    def update(self, instance, validated_data):
+        instance.set_password(validated_data['new_password'])
+        instance.save()
+        return instance
+        
 class PlayerSerializer(serializers.ModelSerializer):
     user_name = serializers.SerializerMethodField('get_username')
 
