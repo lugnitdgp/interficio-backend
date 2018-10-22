@@ -178,5 +178,5 @@ def leaderboard(req):
         api_data.append(i.get('fields'))
 
     data = json.dumps(api_data)
-    data = '{"standings" : '+data+'}'
+    # data = '{"standings" : '+data+'}'
     return HttpResponse(data, content_type='application/json')
