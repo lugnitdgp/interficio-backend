@@ -12,7 +12,7 @@ from knox.models import AuthToken
 
 import json, math
 from decimal import Decimal
-from backend.serializers import UserSerializer, LevelSerializer, PlayerSerializer, CreateUserSerializer, LoginUserSerializer
+from backend.serializers import UserSerializer, LevelSerializer, PlayerSerializer, CreateUserSerializer, LoginUserSerializer, ChangePasswordSerializer
 
 
 
@@ -73,6 +73,22 @@ class LoginAPI(generics.GenericAPIView):
             "user": UserSerializer(user, context=self.get_serializer_context()).data,
             "token": AuthToken.objects.create(user)
         })
+
+        
+class ChangePasswordAPI(generics.GenericAPIView):
+    serializer_class = ChangePasswordSerializer
+    permission_classes = [permissions.IsAuthenticated,]
+    def post(self, request, *args, **kwargs):
+        user_instance = request.user
+        serializer = self.get_serializer(instance=user_instance, data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.update(instance=user_instance, validated_data=serializer.validated_data)
+        return Response({
+            "user": UserSerializer(user, context=self.get_serializer_context()).data,
+            "token": AuthToken.objects.create(user)
+        })
+
+
 
 class PlayerDetail(APIView):
     """ A Player View """
