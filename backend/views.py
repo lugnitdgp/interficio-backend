@@ -32,6 +32,12 @@ def checkRadius(lat,long,level):
     else:
         return False
 
+def updateRank():
+    data = Player.objects.all().order_by('-score')
+    for i, player in enumerate(data):
+        player.rank = i+1;
+        player.save()
+
 #DRF viewset and serializers
 class UserViewSet(viewsets.ViewSet):
     """
@@ -167,6 +173,7 @@ class SubmitLocation(APIView):
                     player.score += level.points
                     level.save()
                     player.save()
+                    updateRank()
                     msg = {"success" : True}
         return Response(msg)
 
