@@ -117,6 +117,9 @@ class GetLevel(APIView):
             if (current_level >= 0 ):
                 next_level = current_level + 1
             level = Level.objects.get(level_no=next_level)
+            #HackFor map_bool fix(now map_bool will reset to player)
+            level.map_bool = player.map_qs
+            level.save()
             serializer = LevelSerializer(level)
             return Response(serializer.data)
         except Player.DoesNotExist:
@@ -140,7 +143,7 @@ class SubmitLevelAns(APIView):
             except (Player.DoesNotExist, Level.DoesNotExist):
                 player,level = None,None
             if player and (_ans == level.ans ) and (player.current_level == level.level_no-1):
-                player.map_qs = level.map_bool = True 
+                player.map_qs = True 
                 level.save()
                 player.save()
                 msg = {"success" : True}
@@ -166,10 +169,10 @@ class SubmitLocation(APIView):
                 level = Level.objects.get(level_no=player.current_level+1)
             except (Player.DoesNotExist, Level.DoesNotExist):
                 player,level = None,None
-            if player.map_qs and level.map_bool:
+            if player.map_qs:
                 if checkRadius(_lat, _long, level):
                     player.current_level += 1
-                    player.map_qs = level.map_bool = False
+                    player.map_qs = False
                     player.score += level.points
                     level.save()
                     player.save()
