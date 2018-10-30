@@ -75,7 +75,7 @@ class LevelSerializer(serializers.ModelSerializer):
             obj.map_bool = None
             return True
 
-        elif obj.show == False:
+        elif obj.paused == False:
             return False
     class Meta:
         model = Level
