@@ -37,8 +37,10 @@ class PlayerAdmin(admin.ModelAdmin):
     
     clear_all_values.short_description = "Clear all values"
 
-
+class LevelAdmin(admin.ModelAdmin):
+    list_display = ['title','paused','location']
+    
 # Register your models here.
 admin.site.register(Location, LocationAdmin)
 admin.site.register(Player, PlayerAdmin)
-admin.site.register(Level)
+admin.site.register(Level,LevelAdmin)

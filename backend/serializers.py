@@ -66,6 +66,17 @@ class PlayerSerializer(serializers.ModelSerializer):
 
 
 class LevelSerializer(serializers.ModelSerializer):
+    pause_bool = serializers.SerializerMethodField('check_pause')
+
+    def check_pause(self,obj):     
+        if obj.paused == True:
+            obj.ques = "PAUSE"
+            obj.title = None
+            obj.map_bool = None
+            return True
+
+        elif obj.show == False:
+            return False
     class Meta:
         model = Level
-        fields = ('level_no','title','ques','map_bool')
+        fields = ('pause_bool','level_no','title','ques','map_bool')
