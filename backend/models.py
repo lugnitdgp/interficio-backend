@@ -31,6 +31,7 @@ class Level(models.Model):
     ans = models.CharField(max_length=255)
     points = models.IntegerField(default=0)
     map_bool = models.BooleanField(default=False)
+    map_hint = models.TextField(null=True, blank=True)
     location = models.ForeignKey(Location, on_delete=models.CASCADE, blank=True, null=True)
     radius = models.DecimalField(max_digits=9,decimal_places=6,help_text="Put radius in KMs", null=True, blank=True)
     paused = models.BooleanField(default=False)

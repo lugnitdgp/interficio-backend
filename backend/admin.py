@@ -39,6 +39,7 @@ class PlayerAdmin(admin.ModelAdmin):
 
 class LevelAdmin(admin.ModelAdmin):
     list_display = ['title','paused','location']
+    readonly_fields = ['map_bool']
     
 # Register your models here.
 admin.site.register(Location, LocationAdmin)
