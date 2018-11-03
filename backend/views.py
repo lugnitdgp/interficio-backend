@@ -10,7 +10,7 @@ from rest_framework import authentication, permissions
 from rest_framework.views import APIView
 from knox.models import AuthToken
 
-import json, math
+import json, math, datetime
 from decimal import Decimal
 from backend.serializers import UserSerializer, LevelSerializer, PlayerSerializer, CreateUserSerializer, LoginUserSerializer, ChangePasswordSerializer
 
@@ -143,7 +143,7 @@ class SubmitLevelAns(APIView):
             except (Player.DoesNotExist, Level.DoesNotExist):
                 player,level = None,None
             if player and (_ans == level.ans ) and (player.current_level == level.level_no-1):
-                player.map_qs = True 
+                player.map_qs = True
                 level.save()
                 player.save()
                 msg = {"success" : True}
@@ -174,6 +174,7 @@ class SubmitLocation(APIView):
                     player.current_level += 1
                     player.map_qs = False
                     player.score += level.points
+                    player.last_solve = datetime.datetime.now()
                     level.save()
                     player.save()
                     updateRank()
@@ -181,7 +182,7 @@ class SubmitLocation(APIView):
         return Response(msg)
 
 def leaderboard(req):
-    data = Player.objects.all().order_by('-score')
+    data = Player.objects.all().order_by('-score','last_solve')
     data = json.loads(ds.serialize("json", data))
     api_data = []
     for i in data:

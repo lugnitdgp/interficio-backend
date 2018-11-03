@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+import datetime
 
 # Create your models here.
 class Player(models.Model):
@@ -12,6 +13,7 @@ class Player(models.Model):
     rank = models.IntegerField(default=0)
     current_level = models.IntegerField(default=0)
     map_qs = models.BooleanField(default=False)
+    last_solve =  models.DateTimeField(default=datetime.datetime.now() , blank=True)
 
     def __str__(self):
         return self.user.username
