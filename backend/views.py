@@ -33,7 +33,7 @@ def checkRadius(lat,long,level):
         return False
 
 def updateRank():
-    data = Player.objects.all().order_by('-score')
+    data = Player.objects.all().order_by('-score','last_solve')
     for i, player in enumerate(data):
         player.rank = i+1;
         player.save()
