@@ -6,7 +6,7 @@ router = routers.DefaultRouter()
 
 router.register(r'users', views.UserViewSet, base_name='user')
 
-urlpatterns = router.urls;
+urlpatterns = router.urls
 
 urlpatterns += [
     path('scoreboard/', views.leaderboard, name="leaderborad"),

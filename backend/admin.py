@@ -1,7 +1,8 @@
 from django.contrib import admin
-from backend.models import Player, Location , Level
+from backend.models import Player, Location, Level
 
 from django.conf import settings
+
 
 class LocationAdmin(admin.ModelAdmin):
     list_display = ('name', 'lat', 'long',)
@@ -9,7 +10,7 @@ class LocationAdmin(admin.ModelAdmin):
 
     fieldsets = (
         (None, {
-            'fields': ( 'name', 'lat', 'long',)
+            'fields': ('name', 'lat', 'long',)
         }),
     )
 
@@ -23,25 +24,26 @@ class LocationAdmin(admin.ModelAdmin):
                 'js/admin/location_picker.js',
             )
 
+
 class PlayerAdmin(admin.ModelAdmin):
-    list_display = ['user','name','email','score','rank','current_level']
+    list_display = ['user', 'name', 'email', 'score', 'rank', 'current_level']
     readonly_fields = ['map_qs']
     actions = ['clear_all_values']
-
 
     def clear_all_values(self, req, queryset):
         queryset.update(score=0)
         queryset.update(rank=0)
         queryset.update(current_level=0)
         queryset.update(map_qs=False)
-    
+
     clear_all_values.short_description = "Clear all values"
 
+
 class LevelAdmin(admin.ModelAdmin):
-    list_display = ['title','paused','location']
+    list_display = ['title', 'paused', 'location']
     readonly_fields = ['map_bool']
-    
-# Register your models here.
+
+
 admin.site.register(Location, LocationAdmin)
 admin.site.register(Player, PlayerAdmin)
-admin.site.register(Level,LevelAdmin)
+admin.site.register(Level, LevelAdmin)
