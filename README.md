@@ -21,7 +21,7 @@
 
     #### For Linux/Mac OSX   
     ```
-    source dajngo-env/bin/activate
+    source django-env/bin/activate
 
     ```
 
