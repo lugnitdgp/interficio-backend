@@ -27,21 +27,25 @@ class LocationAdmin(admin.ModelAdmin):
 
 class PlayerAdmin(admin.ModelAdmin):
     list_display = ['user', 'name', 'email', 'score', 'rank', 'current_level']
-    readonly_fields = ['map_qs']
-    actions = ['clear_all_values']
+    # readonly_fields = ['map_qs']
+    actions = ['clear_all_values', 'add_100_coins']
 
     def clear_all_values(self, req, queryset):
         queryset.update(score=0)
         queryset.update(rank=0)
         queryset.update(current_level=0)
-        queryset.update(map_qs=False)
+        # queryset.update(map_qs=False)
+    
+    def add_100_coins(self, req, queryset):
+        queryset.update(coins= 100)
 
     clear_all_values.short_description = "Clear all values"
+    add_100_coins.short_description = "Add 100 coins"
 
 
 class LevelAdmin(admin.ModelAdmin):
     list_display = ['title', 'paused', 'location']
-    readonly_fields = ['map_bool']
+    # readonly_fields = ['map_bool']
 
 
 admin.site.register(Location, LocationAdmin)

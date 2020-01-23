@@ -72,26 +72,26 @@ class PlayerSerializer(serializers.ModelSerializer):
 
 class LevelSerializer(serializers.ModelSerializer):
     pause_bool = serializers.SerializerMethodField('check_pause')
-    map_hint = serializers.SerializerMethodField('_hint')
+    # map_hint = serializers.SerializerMethodField('_hint')
 
     def check_pause(self, obj):
         if obj.paused == True:
             obj.ques = "PAUSE"
             obj.title = None
-            obj.map_bool = None
+            # obj.map_bool = None
             return True
 
         elif obj.paused == False:
             return False
 
     # Hack for giving hints on Maps
-    def _hint(self, obj):
-        if obj.map_bool == True:
-            obj.ques = obj.map_hint
-            return True
-        else:
-            return False
+    # def _hint(self, obj):
+    #     if obj.map_bool == True:
+    #         obj.ques = obj.map_hint
+    #         return True
+    #     else:
+    #         return False
 
     class Meta:
         model = Level
-        fields = ('pause_bool', 'map_hint', 'level_no', 'title', 'ques', 'map_bool')
+        fields = ('pause_bool', 'level_no', 'title', 'ques')

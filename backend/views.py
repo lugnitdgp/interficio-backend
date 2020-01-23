@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404
-from backend.models import Player, Level, Location
+from backend.models import Player, Level, Location, Clue
 from django.contrib.auth.models import User
 from django.core import serializers as ds
 from rest_framework import viewsets, generics
@@ -127,11 +127,68 @@ class GetLevel(APIView):
             if (current_level >= 0):
                 next_level = current_level + 1
             level = Level.objects.get(level_no=next_level)
-            # HackFor map_bool fix(now map_bool will reset to player)
-            level.map_bool = player.map_qs
+            # # HackFor map_bool fix(now map_bool will reset to player)
+            # level.map_bool = player.map_qs
             level.save()
             serializer = LevelSerializer(level)
             return Response(serializer.data)
+        except Player.DoesNotExist:
+            return Response({"data": None})
+        except Level.DoesNotExist:
+            if player.current_level == len(Level.objects.all()):
+                return Response({"level": "ALLDONE"})
+            return Response({"data": None})
+
+class GetLevelClues(APIView):
+    permission_classes = [permissions.IsAuthenticated, ]
+    
+    def get(self, request, format=None):
+        try:
+            level_no = request.data.get("level_no", None)
+            if not level_no:
+                return Response({"data": None, "msg": "Level not provided"})
+
+            player = Player.objects.get(user=request.user)
+            current_level = player.current_level
+            if (current_level < level_no):
+                return Response({"data": None, "msg": "Level not unlocked"})
+
+            level = Level.objects.get(level_no=level_no)
+            clues = Clue.objects.get(level=level) # get clues for the level
+            rclues = [] # response clues
+            for c in clues:
+                if c in player.unlocked_clues:
+                    rclues.append([c.clue_no, c.title, c.text, "U"]) # L or U is state Locked or Unlocked
+                rclues.append([c.clue_no, c.title, None, "L"])
+            return Response({"data" : rclues})
+
+        except Player.DoesNotExist:
+            return Response({"data": None})
+        except Level.DoesNotExist:
+            if player.current_level == len(Level.objects.all()):
+                return Response({"level": "ALLDONE"})
+            return Response({"data": None})
+
+class UnlockClue(APIView):
+    permission_classes = [permissions.IsAuthenticated, ]
+
+    def get(self, request, format=None):
+        try:
+            level_no = request.data.get("level_no", None)
+            clue_no = request.data.get("clue_no", None)
+            if not (level_no and clue_no):
+                return Response({"data": None, "msg": "Level or Clue not provided"})
+
+            player = Player.objects.get(user=request.user)
+            current_level = player.current_level
+            if (current_level < level_no):
+                return Response({"data": None, "msg": "Level not unlocked"})
+
+            level = Level.objects.get(level_no=level_no)
+            clue = Clue.objects.filter(level=level, clue_no=clue_no).first()  # get clues for the level
+            player.unlocked_clues.add(clue)
+            return Response({"data": "True"})
+
         except Player.DoesNotExist:
             return Response({"data": None})
         except Level.DoesNotExist:
@@ -183,16 +240,16 @@ class SubmitLocation(APIView):
                 level = Level.objects.get(level_no=player.current_level+1)
             except (Player.DoesNotExist, Level.DoesNotExist):
                 player, level = None, None
-            if player.map_qs:
-                if checkRadius(_lat, _long, level):
-                    player.current_level += 1
-                    player.map_qs = False
-                    player.score += level.points
-                    player.last_solve = datetime.datetime.now()
-                    level.save()
-                    player.save()
-                    updateRank()
-                    msg = {"success": True}
+            # if player.map_qs:
+            if checkRadius(_lat, _long, level):
+                player.current_level += 1
+                # player.map_qs = False
+                # player.score += level.points
+                player.last_solve = datetime.datetime.now()
+                level.save()
+                player.save()
+                # updateRank()
+                msg = {"success": True}
         return Response(msg)
 
 
