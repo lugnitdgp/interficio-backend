@@ -144,26 +144,30 @@ class GetLevelClues(APIView):
     
     def get(self, request, format=None):
         try:
-            level_no = request.data.get("level_no", None)
+            level_no = request.query_params.get("level_no", None)
             if not level_no:
                 return Response({"data": None, "msg": "Level not provided"})
-
+            level_no = int(level_no)
+            
             player = Player.objects.get(user=request.user)
             current_level = player.current_level
-            if (current_level < level_no):
+            if (current_level+1 < level_no):
                 return Response({"data": None, "msg": "Level not unlocked"})
 
             level = Level.objects.get(level_no=level_no)
-            clues = Clue.objects.get(level=level) # get clues for the level
+            clues = Clue.objects.filter(level=level) # get clues for the level
             rclues = [] # response clues
             for c in clues:
-                if c in player.unlocked_clues:
+                if c in player.unlocked_clues.all():
                     rclues.append([c.clue_no, c.title, c.text, "U"]) # L or U is state Locked or Unlocked
-                rclues.append([c.clue_no, c.title, None, "L"])
+                else:
+                    rclues.append([c.clue_no, c.title, None, "L"])
             return Response({"data" : rclues})
-
+        
+        except ValueError:
+            return Response({"data": None, "msg": "Level must be an integer"})
         except Player.DoesNotExist:
-            return Response({"data": None})
+            return Response({"data": None, "msg": "Player does not exist"})
         except Level.DoesNotExist:
             if player.current_level == len(Level.objects.all()):
                 return Response({"level": "ALLDONE"})
@@ -174,21 +178,31 @@ class UnlockClue(APIView):
 
     def get(self, request, format=None):
         try:
-            level_no = request.data.get("level_no", None)
-            clue_no = request.data.get("clue_no", None)
+            level_no = request.query_params.get("level_no", None)
+            clue_no = request.query_params.get("clue_no", None)
             if not (level_no and clue_no):
                 return Response({"data": None, "msg": "Level or Clue not provided"})
+            
+            level_no = int(level_no)
+            clue_no = int(clue_no)
 
             player = Player.objects.get(user=request.user)
             current_level = player.current_level
-            if (current_level < level_no):
+            if (current_level+1 < level_no):
                 return Response({"data": None, "msg": "Level not unlocked"})
 
             level = Level.objects.get(level_no=level_no)
             clue = Clue.objects.filter(level=level, clue_no=clue_no).first()  # get clues for the level
-            player.unlocked_clues.add(clue)
-            return Response({"data": "True"})
+            if clue:
+                player.unlocked_clues.add(clue)
+                player.coins -= clue.unlock_price
+                player.save()
+                return Response({"data": "True"})
+            else:
+                return Response({"data": None, "msg": "Requested Clue dosen't exist for this Level"})
 
+        except ValueError:
+            return Response({"data": None, "msg": "Level and Clue must be an integer"})
         except Player.DoesNotExist:
             return Response({"data": None})
         except Level.DoesNotExist:

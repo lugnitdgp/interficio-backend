@@ -1,5 +1,5 @@
 from django.contrib import admin
-from backend.models import Player, Location, Level
+from backend.models import Player, Location, Level, Clue
 
 from django.conf import settings
 
@@ -47,7 +47,11 @@ class LevelAdmin(admin.ModelAdmin):
     list_display = ['title', 'paused', 'location']
     # readonly_fields = ['map_bool']
 
+class ClueAdmin(admin.ModelAdmin):
+    list_display = ['title', 'level']
+
 
 admin.site.register(Location, LocationAdmin)
 admin.site.register(Player, PlayerAdmin)
 admin.site.register(Level, LevelAdmin)
+admin.site.register(Clue, ClueAdmin)

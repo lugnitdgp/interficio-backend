@@ -1,26 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
-import datetime
-
-
-class Player(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE)
-    name = models.CharField(max_length=255)
-    email = models.EmailField(null=True, blank=True)
-    score = models.IntegerField(default=0)
-
-    # For internal user must not be on API
-    rank = models.IntegerField(default=0)
-    current_level = models.IntegerField(default=0) # completed current level
-    # map_qs = models.BooleanField(default=False)
-    last_solve = models.DateTimeField(default=datetime.datetime.now(), blank=True)
-
-    coins = models.IntegerField(default=0)
-    unlocked_clues = models.ManyToManyField(Clue)
-    # readable_clues = models.ManyToManyField(Clue)
-
-    def __str__(self):
-        return self.user.username
+from django.utils import timezone
 
 
 class Location(models.Model):
@@ -57,3 +37,23 @@ class Clue(models.Model):
 
     def __str__(self):
         return self.text
+
+
+class Player(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE)
+    name = models.CharField(max_length=255)
+    email = models.EmailField(null=True, blank=True)
+    score = models.IntegerField(default=0)
+
+    # For internal user must not be on API
+    rank = models.IntegerField(default=0)
+    current_level = models.IntegerField(default=0)  # completed current level
+    # map_qs = models.BooleanField(default=False)
+    last_solve = models.DateTimeField(default=timezone.now, blank=True)
+
+    coins = models.IntegerField(default=0)
+    unlocked_clues = models.ManyToManyField(Clue)
+    # readable_clues = models.ManyToManyField(Clue)
+
+    def __str__(self):
+        return self.user.username

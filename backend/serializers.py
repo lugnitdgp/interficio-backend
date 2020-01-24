@@ -67,7 +67,7 @@ class PlayerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Player
-        fields = ('user_name', 'name', 'email', 'score', 'rank', 'current_level')
+        fields = ('user_name', 'name', 'email', 'coins', 'rank', 'current_level')
 
 
 class LevelSerializer(serializers.ModelSerializer):
