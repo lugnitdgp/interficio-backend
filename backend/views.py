@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404
-from backend.models import Player, Level, Location
+from backend.models import Player, Level, Location, Clue
 from django.contrib.auth.models import User
 from django.core import serializers as ds
 from rest_framework import viewsets, generics
@@ -10,43 +10,49 @@ from rest_framework import authentication, permissions
 from rest_framework.views import APIView
 from knox.models import AuthToken
 
-import json, math, datetime
+import json
+import math
+import datetime
 from decimal import Decimal
 from backend.serializers import UserSerializer, LevelSerializer, PlayerSerializer, CreateUserSerializer, LoginUserSerializer, ChangePasswordSerializer
 
 
-
-def checkRadius(lat,long,level):
+def checkRadius(lat, long, level):
     earth_r = 6371
     l_lat = level.location.lat
     l_long = level.location.long
     r = level.radius
-    dlat = math.radians(l_lat-lat) #distange 
-    dlong = math.radians(l_long-long) #distance
+    dlat = math.radians(l_lat-lat)  # distange
+    dlong = math.radians(l_long-long)  # distance
 
-    a = math.sin(dlat/2)*math.sin(dlat/2) + math.cos(math.radians(lat))*math.cos(math.radians(l_lat))*math.sin(dlong/2)*math.sin(dlong/2)
+    a = math.sin(dlat/2)*math.sin(dlat/2) + math.cos(math.radians(lat)) * \
+        math.cos(math.radians(l_lat))*math.sin(dlong/2)*math.sin(dlong/2)
     c = 2 * math.asin(math.sqrt(a))
     d = earth_r*c
-    if(d<r):
+    if(d < r):
         return True
     else:
         return False
 
+
 def updateRank():
-    data = Player.objects.all().order_by('-score','last_solve')
+    data = Player.objects.all().order_by('-score', 'last_solve')
     for i, player in enumerate(data):
-        player.rank = i+1;
+        player.rank = i+1
         player.save()
 
-#DRF viewset and serializers
+# DRF viewset and serializers
+
+
 class UserViewSet(viewsets.ViewSet):
     """
     A simple ViewSet for listing or retrieving users.
     """
+
     def list(self, request):
         queryset = User.objects.all()
         serializer = UserSerializer(queryset, many=True)
-        usernames = [{user.pk : user.username} for user in queryset]
+        usernames = [{user.pk: user.username} for user in queryset]
         return Response(usernames)
 
     def retrieve(self, request, pk=None):
@@ -55,9 +61,11 @@ class UserViewSet(viewsets.ViewSet):
         serializer = UserSerializer(user)
         return Response(serializer.data)
 
+
 class RegistrationAPI(generics.GenericAPIView):
     serializer_class = CreateUserSerializer
     permission_classes = [permissions.AllowAny, ]
+
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -71,6 +79,7 @@ class RegistrationAPI(generics.GenericAPIView):
 class LoginAPI(generics.GenericAPIView):
     serializer_class = LoginUserSerializer
     permission_classes = [permissions.AllowAny, ]
+
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -80,10 +89,11 @@ class LoginAPI(generics.GenericAPIView):
             "token": AuthToken.objects.create(user)
         })
 
-        
+
 class ChangePasswordAPI(generics.GenericAPIView):
     serializer_class = ChangePasswordSerializer
-    permission_classes = [permissions.IsAuthenticated,]
+    permission_classes = [permissions.IsAuthenticated, ]
+
     def post(self, request, *args, **kwargs):
         user_instance = request.user
         serializer = self.get_serializer(instance=user_instance, data=request.data)
@@ -95,12 +105,11 @@ class ChangePasswordAPI(generics.GenericAPIView):
         })
 
 
-
 class PlayerDetail(APIView):
     """ A Player View """
     permission_classes = [permissions.IsAuthenticated, ]
 
-    def get(self,request,format=None):
+    def get(self, request, format=None):
         player = get_object_or_404(Player, user=request.user)
         serializer = PlayerSerializer(player)
         return Response(serializer.data)
@@ -109,16 +118,17 @@ class PlayerDetail(APIView):
 class GetLevel(APIView):
 
     permission_classes = [permissions.IsAuthenticated, ]
-    def get(self,request,format=None):
+
+    def get(self, request, format=None):
         user_id = request.user.pk
         try:
             player = Player.objects.get(user=request.user)
             current_level = player.current_level
-            if (current_level >= 0 ):
+            if (current_level >= 0):
                 next_level = current_level + 1
             level = Level.objects.get(level_no=next_level)
-            #HackFor map_bool fix(now map_bool will reset to player)
-            level.map_bool = player.map_qs
+            # # HackFor map_bool fix(now map_bool will reset to player)
+            # level.map_bool = player.map_qs
             level.save()
             serializer = LevelSerializer(level)
             return Response(serializer.data)
@@ -129,65 +139,140 @@ class GetLevel(APIView):
                 return Response({"level": "ALLDONE"})
             return Response({"data": None})
 
+class GetLevelClues(APIView):
+    permission_classes = [permissions.IsAuthenticated, ]
+    
+    def get(self, request, format=None):
+        try:
+            level_no = request.query_params.get("level_no", None)
+            if not level_no:
+                return Response({"data": None, "msg": "Level not provided"})
+            level_no = int(level_no)
+            
+            player = Player.objects.get(user=request.user)
+            current_level = player.current_level
+            if (current_level+1 < level_no):
+                return Response({"data": None, "msg": "Level not unlocked"})
+
+            level = Level.objects.get(level_no=level_no)
+            clues = Clue.objects.filter(level=level) # get clues for the level
+            rclues = [] # response clues
+            for c in clues:
+                if c in player.unlocked_clues.all():
+                    rclues.append([c.clue_no, c.title, c.text, "U"]) # L or U is state Locked or Unlocked
+                else:
+                    rclues.append([c.clue_no, c.title, None, "L"])
+            return Response({"data" : rclues})
+        
+        except ValueError:
+            return Response({"data": None, "msg": "Level must be an integer"})
+        except Player.DoesNotExist:
+            return Response({"data": None, "msg": "Player does not exist"})
+        except Level.DoesNotExist:
+            if player.current_level == len(Level.objects.all()):
+                return Response({"level": "ALLDONE"})
+            return Response({"data": None})
+
+class UnlockClue(APIView):
+    permission_classes = [permissions.IsAuthenticated, ]
+
+    def get(self, request, format=None):
+        try:
+            level_no = request.query_params.get("level_no", None)
+            clue_no = request.query_params.get("clue_no", None)
+            if not (level_no and clue_no):
+                return Response({"data": None, "msg": "Level or Clue not provided"})
+            
+            level_no = int(level_no)
+            clue_no = int(clue_no)
+
+            player = Player.objects.get(user=request.user)
+            current_level = player.current_level
+            if (current_level+1 < level_no):
+                return Response({"data": None, "msg": "Level not unlocked"})
+
+            level = Level.objects.get(level_no=level_no)
+            clue = Clue.objects.filter(level=level, clue_no=clue_no).first()  # get clues for the level
+            if clue:
+                player.unlocked_clues.add(clue)
+                player.coins -= clue.unlock_price
+                player.save()
+                return Response({"data": "True"})
+            else:
+                return Response({"data": None, "msg": "Requested Clue dosen't exist for this Level"})
+
+        except ValueError:
+            return Response({"data": None, "msg": "Level and Clue must be an integer"})
+        except Player.DoesNotExist:
+            return Response({"data": None})
+        except Level.DoesNotExist:
+            if player.current_level == len(Level.objects.all()):
+                return Response({"level": "ALLDONE"})
+            return Response({"data": None})
+
+
 class SubmitLevelAns(APIView):
     permission_classes = [permissions.IsAuthenticated, ]
+
     def post(self, request, *args, **kwargs):
         data = request.data
-        _ans = data.get("answer",None)
-        _level = data.get("level_no",None)
-        msg = {"success" : False}
+        _ans = data.get("answer", None)
+        _level = data.get("level_no", None)
+        msg = {"success": False}
         if _ans and _level:
             try:
                 player = Player.objects.get(user=request.user)
                 level = Level.objects.get(level_no=player.current_level+1)
             except (Player.DoesNotExist, Level.DoesNotExist):
-                player,level = None,None
-            if player and (_ans == level.ans ) and (player.current_level == level.level_no-1):
+                player, level = None, None
+            if player and (_ans == level.ans) and (player.current_level == level.level_no-1):
                 player.map_qs = True
                 level.save()
                 player.save()
-                msg = {"success" : True}
+                msg = {"success": True}
 
         return Response(msg)
 
+
 class SubmitLocation(APIView):
     permission_classes = [permissions.IsAuthenticated, ]
+
     def post(self, request, *args, **kwargs):
         data = request.data
         try:
-            _lat = Decimal(data.get("lat",None))
-            _long = Decimal(data.get("long",None))
-            _level = data.get("level_no",None)
+            _lat = Decimal(data.get("lat", None))
+            _long = Decimal(data.get("long", None))
+            _level = data.get("level_no", None)
         except Exception as e:
             print(e)
-            _lat, _long = None,None
+            _lat, _long = None, None
 
-        msg = {"success" : False}
+        msg = {"success": False}
         if _lat and _long:
             try:
                 player = Player.objects.get(user=request.user)
                 level = Level.objects.get(level_no=player.current_level+1)
             except (Player.DoesNotExist, Level.DoesNotExist):
-                player,level = None,None
-            if player.map_qs:
-                if checkRadius(_lat, _long, level):
-                    player.current_level += 1
-                    player.map_qs = False
-                    player.score += level.points
-                    player.last_solve = datetime.datetime.now()
-                    level.save()
-                    player.save()
-                    updateRank()
-                    msg = {"success" : True}
+                player, level = None, None
+            # if player.map_qs:
+            if checkRadius(_lat, _long, level):
+                player.current_level += 1
+                # player.map_qs = False
+                # player.score += level.points
+                player.last_solve = datetime.datetime.now()
+                level.save()
+                player.save()
+                # updateRank()
+                msg = {"success": True}
         return Response(msg)
 
+
 def leaderboard(req):
-    data = Player.objects.all().order_by('-score','last_solve')
+    data = Player.objects.all().order_by('-score', 'last_solve')
     data = json.loads(ds.serialize("json", data))
     api_data = []
     for i in data:
         api_data.append(i.get('fields'))
 
     data = json.dumps(api_data)
-    # data = '{"standings" : '+data+'}'
     return HttpResponse(data, content_type='application/json')

@@ -6,7 +6,7 @@ router = routers.DefaultRouter()
 
 router.register(r'users', views.UserViewSet, base_name='user')
 
-urlpatterns = router.urls;
+urlpatterns = router.urls
 
 urlpatterns += [
     path('scoreboard/', views.leaderboard, name="leaderborad"),
@@ -15,6 +15,8 @@ urlpatterns += [
     path('auth/changepassword/', views.ChangePasswordAPI.as_view(), name="auth-changepass"),
     path('player/', views.PlayerDetail.as_view(), name="palyer-detail"),
     path('getlevel/', views.GetLevel.as_view(), name="get-level"),
+    path('getlevelclues/', views.GetLevelClues.as_view(), name="get-level-clues"),
+    path('unlockclue/', views.UnlockClue.as_view(), name="unlock-clues"),
     path('submit/ans/', views.SubmitLevelAns.as_view(), name="submit-ans"),
     path('submit/location/', views.SubmitLocation.as_view(), name="submit-location"),
 ]

@@ -3,12 +3,14 @@ from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
 from backend.models import Player, Level, Location
 
+
 class CreateUserSerializer(serializers.ModelSerializer):
     email = serializers.EmailField(write_only=True)
     name = serializers.CharField(write_only=True)
+
     class Meta:
         model = User
-        fields = ('username', 'password','email','name')
+        fields = ('username', 'password', 'email', 'name')
         extra_kwargs = {'password': {'write_only': True}}
 
     def create(self, validated_data):
@@ -16,9 +18,9 @@ class CreateUserSerializer(serializers.ModelSerializer):
                                         None,
                                         validated_data['password'])
 
-        player = Player.objects.create(user = user,
-                                        name = validated_data['name'],
-                                        email = validated_data['email'])
+        player = Player.objects.create(user=user,
+                                       name=validated_data['name'],
+                                       email=validated_data['email'])
         return user
 
 
@@ -32,27 +34,30 @@ class LoginUserSerializer(serializers.Serializer):
             return user
         raise serializers.ValidationError("Unable to log in with provided credentials.")
 
+
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
         fields = ('username',)
-    
+
+
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField()
     new_password = serializers.CharField(write_only=True)
 
-    def validate(self,instance,data):
+    def validate(self, instance, data):
         print("IM VADILATING")
         user = instance
         if user.check_password(data['old_passowrd']):
             return data
         else:
-            raise serializers.ValidationError("Old password validation error.")     
-        
+            raise serializers.ValidationError("Old password validation error.")
+
     def update(self, instance, validated_data):
         instance.set_password(validated_data['new_password'])
         instance.save()
         return instance
+
 
 class PlayerSerializer(serializers.ModelSerializer):
     user_name = serializers.SerializerMethodField('get_username')
@@ -62,31 +67,31 @@ class PlayerSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Player
-        fields = ('user_name','name','email','score','rank','current_level')
+        fields = ('user_name', 'name', 'email', 'coins', 'rank', 'current_level')
 
 
 class LevelSerializer(serializers.ModelSerializer):
     pause_bool = serializers.SerializerMethodField('check_pause')
-    map_hint = serializers.SerializerMethodField('_hint')
+    # map_hint = serializers.SerializerMethodField('_hint')
 
-    def check_pause(self,obj):     
+    def check_pause(self, obj):
         if obj.paused == True:
             obj.ques = "PAUSE"
             obj.title = None
-            obj.map_bool = None
+            # obj.map_bool = None
             return True
 
         elif obj.paused == False:
             return False
 
-    #HAck for giving hints on Maps
-    def _hint(self,obj):
-        if obj.map_bool == True:
-            obj.ques = obj.map_hint
-            return True
-        else:
-            return False
+    # Hack for giving hints on Maps
+    # def _hint(self, obj):
+    #     if obj.map_bool == True:
+    #         obj.ques = obj.map_hint
+    #         return True
+    #     else:
+    #         return False
 
     class Meta:
         model = Level
-        fields = ('pause_bool','map_hint','level_no','title','ques','map_bool')
+        fields = ('pause_bool', 'level_no', 'title', 'ques')
