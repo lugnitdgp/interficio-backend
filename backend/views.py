@@ -173,6 +173,47 @@ class GetLevelClues(APIView):
                 return Response({"level": "ALLDONE"})
             return Response({"data": None})
 
+
+class GetClues(APIView):
+    """Get all clues upto the unlocked level"""
+
+    permission_classes = [permissions.IsAuthenticated, ]
+
+    def get(self, request, format=None):
+        try:
+            level_no = request.query_params.get("level_no", None)
+            if not level_no:
+                return Response({"data": None, "msg": "Level not provided"})
+            level_no = int(level_no)
+            player = Player.objects.get(user=request.user)
+            current_level = player.current_level
+            if (current_level+1 < level_no):
+                return Response({"data": None, "msg": "Level not unlocked"})
+
+            # level = Level.objects.get(level_no=level_no)
+            # clues = Clue.objects.filter(level=level)  # get clues for the level
+            rclues = []  # response clues
+            for l_no in range(0,level_no):
+                lvl = Level.objects.filter(level_no=l_no).first()
+                if lvl:
+                    clu = Clue.objects.filter(level=lvl)
+                    for c in clu:
+                        if c in player.unlocked_clues.all():
+                            rclues.append([c.clue_no, c.title, c.text, "U"])  # L or U is state Locked or Unlocked
+                        else:
+                            rclues.append([c.clue_no, c.title, None, "L"])
+            return Response({"data": rclues})
+
+        except ValueError:
+            return Response({"data": None, "msg": "Level must be an integer"})
+        except Player.DoesNotExist:
+            return Response({"data": None, "msg": "Player does not exist"})
+        except Level.DoesNotExist:
+            if player.current_level == len(Level.objects.all()):
+                return Response({"level": "ALLDONE"})
+            return Response({"data": None})
+
+
 class UnlockClue(APIView):
     permission_classes = [permissions.IsAuthenticated, ]
 
@@ -268,7 +309,7 @@ class SubmitLocation(APIView):
 
 
 def leaderboard(req):
-    data = Player.objects.all().order_by('-score', 'last_solve')
+    data = Player.objects.all().order_by('-current_level', 'last_solve')
     data = json.loads(ds.serialize("json", data))
     api_data = []
     for i in data:
