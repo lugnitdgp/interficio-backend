@@ -63,4 +63,4 @@ class FinalQuestion(models.Model):
     text = models.TextField()
 
     def __str__(self):
-        self.text
+        return self.text
