@@ -54,7 +54,7 @@ class Player(models.Model):
     coins = models.IntegerField(default=0)
     unlocked_clues = models.ManyToManyField(Clue)
     # readable_clues = models.ManyToManyField(Clue)
-    final_ans = models.TextField()
+    final_ans = models.TextField(default="")
 
     def __str__(self):
         return self.user.username
