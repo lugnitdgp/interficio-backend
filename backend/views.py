@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404
-from backend.models import Player, Level, Location, Clue
+from backend.models import Player, Level, Location, Clue, FinalQuestion
 from django.contrib.auth.models import User
 from django.core import serializers as ds
 from rest_framework import viewsets, generics
@@ -305,6 +305,29 @@ class SubmitLocation(APIView):
                 player.save()
                 # updateRank()
                 msg = {"success": True}
+        return Response(msg)
+
+class FinalText(APIView):
+    permission_classes = [permissions.IsAuthenticated, ]
+
+    def get(self, request, format=None):
+        player = Player.objects.get(user=request.user)
+        if (player.current_level == len(Level.objects.all())) and (player.ans != ""):
+            ftext = FinalQuestion.objects.all().first()
+            return Response({"data": ftext.text})
+        else:
+            return Response({"data": None})
+
+    def post(self, request, *args, **kwargs):
+        data = request.data
+        ans = data.get("ans", None)
+        msg = {"success": False}
+        if ans:
+            player = Player.objects.get(user=request.user)
+            if (player.current_level == len(Level.objects.all())) and (player.ans != ""):
+                player.final_ans = ans
+                player.save()
+                return Response({"success": True})
         return Response(msg)
 
 
