@@ -1,5 +1,5 @@
 from django.contrib import admin
-from backend.models import Player, Location, Level, Clue
+from backend.models import Player, Location, Level, Clue , FinalQuestion
 
 from django.conf import settings
 
@@ -55,3 +55,4 @@ admin.site.register(Location, LocationAdmin)
 admin.site.register(Player, PlayerAdmin)
 admin.site.register(Level, LevelAdmin)
 admin.site.register(Clue, ClueAdmin)
+admin.site.register(FinalQuestion)
