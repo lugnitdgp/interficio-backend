@@ -181,19 +181,11 @@ class GetClues(APIView):
 
     def get(self, request, format=None):
         try:
-            level_no = request.query_params.get("level_no", None)
-            if not level_no:
-                return Response({"data": None, "msg": "Level not provided"})
-            level_no = int(level_no)
             player = Player.objects.get(user=request.user)
             current_level = player.current_level
-            if (current_level+1 < level_no):
-                return Response({"data": None, "msg": "Level not unlocked"})
-
-            # level = Level.objects.get(level_no=level_no)
-            # clues = Clue.objects.filter(level=level)  # get clues for the level
+           
             rclues = []  # response clues
-            for l_no in range(0,level_no):
+            for l_no in range(0,current_level+1):
                 lvl = Level.objects.filter(level_no=l_no).first()
                 if lvl:
                     clu = Clue.objects.filter(level=lvl)
@@ -312,7 +304,7 @@ class FinalText(APIView):
 
     def get(self, request, format=None):
         player = Player.objects.get(user=request.user)
-        if (player.current_level == len(Level.objects.all())) and (player.final_ans != ""):
+        if player:
             ftext = FinalQuestion.objects.all().first()
             return Response({"data": ftext.text})
         else:
