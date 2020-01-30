@@ -45,6 +45,12 @@ class PlayerAdmin(admin.ModelAdmin):
 
 class LevelAdmin(admin.ModelAdmin):
     list_display = ['title', 'paused', 'location']
+    actions = ['pause']
+
+    def pause(self, req, queryset):
+        queryset.update(paused=True)
+
+    pause.short_description = "Pause selected levels"
 
 
 class ClueAdmin(admin.ModelAdmin):
