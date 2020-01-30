@@ -185,7 +185,7 @@ class GetClues(APIView):
             current_level = player.current_level
            
             rclues = []  # response clues
-            for l_no in range(0,current_level+1):
+            for l_no in range(0,current_level+2):
                 lvl = Level.objects.filter(level_no=l_no).first()
                 if lvl:
                     clu = Clue.objects.filter(level=lvl)
@@ -303,9 +303,9 @@ class FinalText(APIView):
     permission_classes = [permissions.IsAuthenticated, ]
 
     def get(self, request, format=None):
-        player = Player.objects.get(user=request.user)
-        if player:
-            ftext = FinalQuestion.objects.all().first()
+        player = Player.objects.filter(user=request.user).first()
+        ftext = FinalQuestion.objects.all().first()
+        if player and ftext:
             return Response({"data": ftext.text})
         else:
             return Response({"data": None})
