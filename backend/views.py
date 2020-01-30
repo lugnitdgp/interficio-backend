@@ -312,7 +312,7 @@ class FinalText(APIView):
 
     def get(self, request, format=None):
         player = Player.objects.get(user=request.user)
-        if (player.current_level == len(Level.objects.all())) and (player.ans != ""):
+        if (player.current_level == len(Level.objects.all())) and (player.final_ans != ""):
             ftext = FinalQuestion.objects.all().first()
             return Response({"data": ftext.text})
         else:
@@ -324,7 +324,7 @@ class FinalText(APIView):
         msg = {"success": False}
         if ans:
             player = Player.objects.get(user=request.user)
-            if (player.current_level == len(Level.objects.all())) and (player.ans != ""):
+            if (player.current_level == len(Level.objects.all())) and (player.final_ans != ""):
                 player.final_ans = ans
                 player.save()
                 return Response({"success": True})
