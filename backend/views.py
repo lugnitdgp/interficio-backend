@@ -159,9 +159,9 @@ class GetLevelClues(APIView):
             rclues = [] # response clues
             for c in clues:
                 if c in player.unlocked_clues.all():
-                    rclues.append([c.clue_no, c.title, c.text, "U"]) # L or U is state Locked or Unlocked
+                    rclues.append([c.clue_no, c.title, c.text, "U", c.image.url]) # L or U is state Locked or Unlocked
                 else:
-                    rclues.append([c.clue_no, c.title, None, "L"])
+                    rclues.append([c.clue_no, c.title, None, "L", None])
             return Response({"data" : rclues})
         
         except ValueError:
@@ -191,9 +191,9 @@ class GetClues(APIView):
                     clu = Clue.objects.filter(level=lvl)
                     for c in clu:
                         if c in player.unlocked_clues.all():
-                            rclues.append([c.clue_no, c.title, c.text, "U"])  # L or U is state Locked or Unlocked
+                            rclues.append([c.clue_no, c.title, c.text, "U", c.image.url,])  # L or U is state Locked or Unlocked
                         else:
-                            rclues.append([c.clue_no, c.title, None, "L"])
+                            rclues.append([c.clue_no, c.title, None, "L", None])
             return Response({"data": rclues})
 
         except ValueError:

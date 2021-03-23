@@ -22,3 +22,5 @@ static/*
 dump.json
 ##
 backend/migrations/00*
+media/
+env/

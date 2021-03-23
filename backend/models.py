@@ -33,6 +33,7 @@ class Clue(models.Model):
     clue_no = models.PositiveIntegerField(unique=True)
     title = models.CharField(max_length=255)
     text = models.TextField()
+    image = models.ImageField(upload_to='clue_img/')
     unlock_price = models.PositiveIntegerField(default=10)
 
     def __str__(self):
