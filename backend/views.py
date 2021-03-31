@@ -337,6 +337,7 @@ class FinalText(APIView):
 
 def leaderboard(req):
     data = Player.objects.all().order_by('-current_level', 'last_solve')
+    data = PlayerSerializer(data)
     data = json.loads(ds.serialize("json", data))
     api_data = []
     for i in data:
