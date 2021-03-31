@@ -36,7 +36,7 @@ def checkRadius(lat, long, level):
 
 
 def updateRank():
-    data = Player.objects.all().order_by('-score', 'last_solve')
+    data = Player.objects.all().order_by('-current_level', 'last_solve')
     for i, player in enumerate(data):
         player.rank = i+1
         player.save()
@@ -337,10 +337,13 @@ class FinalText(APIView):
 
 def leaderboard(req):
     data = Player.objects.all().order_by('-current_level', 'last_solve')
-    data = PlayerSerializer(data)
+    updateRank()
+    for d in data:
+        setattr(d, 'score', getattr(d, 'current_level'))
     data = json.loads(ds.serialize("json", data))
     api_data = []
     for i in data:
+        print(i.get('fields'))
         api_data.append(i.get('fields'))
 
     data = json.dumps(api_data)

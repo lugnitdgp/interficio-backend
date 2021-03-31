@@ -62,17 +62,13 @@ class ChangePasswordSerializer(serializers.Serializer):
 
 class PlayerSerializer(serializers.ModelSerializer):
     user_name = serializers.SerializerMethodField('get_username')
-    score = serializers.SerializerMethodField('get_score')
 
     def get_username(self, obj):
         return obj.user.username
-    
-    def get_score(self, obj):
-        return obj.current_level
 
     class Meta:
         model = Player
-        fields = ('user_name', 'name', 'email', 'coins', 'rank', 'current_level', 'score')
+        fields = ('user_name', 'name', 'email', 'coins', 'rank', 'current_level')
 
 
 class LevelSerializer(serializers.ModelSerializer):
