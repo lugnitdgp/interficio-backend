@@ -238,13 +238,16 @@ class UnlockClue(APIView):
 
             level = Level.objects.get(level_no=level_no)
             clue = Clue.objects.filter(level=level, clue_no=clue_no).first()  # get clues for the level
-            if clue:
-                player.unlocked_clues.add(clue)
-                player.coins -= clue.unlock_price
-                player.save()
-                return Response({"data": "True"})
+            if (clue.unlock_price<=player.coins):
+                if clue:
+                    player.unlocked_clues.add(clue)
+                    player.coins -= clue.unlock_price
+                    player.save()
+                    return Response({"data": "True"})
+                else:
+                    return Response({"data": None, "msg": "Requested Clue dosen't exist for this Level"})
             else:
-                return Response({"data": None, "msg": "Requested Clue dosen't exist for this Level"})
+                return Response({'data':None, "msg": "Not enough coins"})
 
         except ValueError:
             return Response({"data": None, "msg": "Level and Clue must be an integer"})
