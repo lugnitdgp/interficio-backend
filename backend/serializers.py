@@ -20,7 +20,8 @@ class CreateUserSerializer(serializers.ModelSerializer):
 
         player = Player.objects.create(user=user,
                                        name=validated_data['name'],
-                                       email=validated_data['email'])
+                                       email=validated_data['email'],
+                                       coins=1000)
         print(player.unlocked_clues)
         return user
 
