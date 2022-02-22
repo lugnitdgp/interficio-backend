@@ -1,5 +1,5 @@
 from django.contrib import admin
-from backend.models import Player, Location, Level, Clue , FinalQuestion
+from backend.models import Player, Location, Level, Clue , FinalQuestion, Answer
 
 from django.conf import settings
 
@@ -56,9 +56,13 @@ class LevelAdmin(admin.ModelAdmin):
 class ClueAdmin(admin.ModelAdmin):
     list_display = ['title', 'level']
 
+class AnswerAdmin(admin.ModelAdmin):
+    list_display = ['player', 'level', 'lat', 'long']
+
 
 admin.site.register(Location, LocationAdmin)
 admin.site.register(Player, PlayerAdmin)
 admin.site.register(Level, LevelAdmin)
 admin.site.register(Clue, ClueAdmin)
 admin.site.register(FinalQuestion)
+admin.site.register(Answer, AnswerAdmin)

@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
-from backend.models import Player, Level, Location
+from backend.models import Answer, Player, Level, Location
 
 
 class CreateUserSerializer(serializers.ModelSerializer):
@@ -96,3 +96,10 @@ class LevelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Level
         fields = ('pause_bool', 'level_no', 'title', 'ques')
+
+
+class AnswerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Answer
+        fields = ('player', 'level', 'lat', 'long')
+        

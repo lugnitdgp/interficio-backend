@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404
-from backend.models import Player, Level, Location, Clue, FinalQuestion
+from backend.models import Answer, Player, Level, Location, Clue, FinalQuestion
 from django.contrib.auth.models import User
 from django.core import serializers as ds
 from rest_framework import viewsets, generics
@@ -14,7 +14,7 @@ import json
 import math
 import datetime
 from decimal import Decimal
-from backend.serializers import UserSerializer, LevelSerializer, PlayerSerializer, CreateUserSerializer, LoginUserSerializer, ChangePasswordSerializer
+from backend.serializers import AnswerSerializer, UserSerializer, LevelSerializer, PlayerSerializer, CreateUserSerializer, LoginUserSerializer, ChangePasswordSerializer
 
 
 def checkRadius(lat, long, level):
@@ -307,6 +307,8 @@ class SubmitLocation(APIView):
                 player.current_level += 1
                 # player.map_qs = False
                 # player.score += level.points
+                level_answered = Level.objects.get(level_no=_level)
+                Answer.objects.create(player=player, level=level_answered, lat=_lat, long=_long)
                 player.last_solve = datetime.datetime.now()
                 level.save()
                 player.save()
@@ -351,3 +353,18 @@ def leaderboard(req):
 
     data = json.dumps(api_data)
     return HttpResponse(data, content_type='application/json')
+
+
+class GetPlayerAnswers(APIView):
+    permission_classes = [permissions.IsAuthenticated, ]
+
+    def get(self, request, format=None):
+        try:
+            player = Player.objects.get(user=request.user)
+            answers = Answer.objects.filter(player=player)
+            serializer = AnswerSerializer(answers, many=True)
+            msg = "Success"
+            return Response({"data": serializer.data, "msg": msg})
+        except:
+            msg = "Player not found"
+            return Response({"data": None, "msg": msg})

@@ -21,4 +21,5 @@ urlpatterns += [
     path('submit/ans/', views.SubmitLevelAns.as_view(), name="submit-ans"),
     path('submit/location/', views.SubmitLocation.as_view(), name="submit-location"),
     path('finaltext/', views.FinalText.as_view(), name="final-text"),
+    path('getanswers/', views.GetPlayerAnswers.as_view(), name="get-answers"),
 ]
