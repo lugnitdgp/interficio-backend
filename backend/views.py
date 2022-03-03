@@ -296,9 +296,9 @@ class SubmitLevelAns(APIView):
                 for clue in level_clues:
                     player.unlocked_clues.add(clue)
 
-                player.map_qs = True
+                # player.save()
+                # player.map_qs = True
                 level.save()
-                player.save()
                 msg = {"success": True}
 
         return Response(msg)
