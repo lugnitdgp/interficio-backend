@@ -65,3 +65,13 @@ class FinalQuestion(models.Model):
 
     def __str__(self):
         return self.text
+
+
+class Answer(models.Model):
+    player = models.ForeignKey(Player, on_delete=models.CASCADE)
+    level = models.ForeignKey(Level, on_delete=models.CASCADE)
+    lat = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    long = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+
+    def __str__(self):
+        return self.player.name

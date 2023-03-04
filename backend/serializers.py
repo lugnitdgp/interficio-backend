@@ -1,7 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.contrib.auth import authenticate
-from backend.models import Player, Level, Location
+from backend.models import Answer, Player, Level, Location
 
 
 class CreateUserSerializer(serializers.ModelSerializer):
@@ -20,7 +20,8 @@ class CreateUserSerializer(serializers.ModelSerializer):
 
         player = Player.objects.create(user=user,
                                        name=validated_data['name'],
-                                       email=validated_data['email'])
+                                       email=validated_data['email'],
+                                       coins=1000)
         print(player.unlocked_clues)
         return user
 
@@ -96,3 +97,10 @@ class LevelSerializer(serializers.ModelSerializer):
     class Meta:
         model = Level
         fields = ('pause_bool', 'level_no', 'title', 'ques')
+
+
+class AnswerSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Answer
+        fields = ('player', 'level', 'lat', 'long')
+        

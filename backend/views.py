@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import get_object_or_404
-from backend.models import Player, Level, Location, Clue, FinalQuestion
+from backend.models import Answer, Player, Level, Location, Clue, FinalQuestion
 from django.contrib.auth.models import User
 from django.core import serializers as ds
 from rest_framework import viewsets, generics
@@ -14,7 +14,7 @@ import json
 import math
 import datetime
 from decimal import Decimal
-from backend.serializers import UserSerializer, LevelSerializer, PlayerSerializer, CreateUserSerializer, LoginUserSerializer, ChangePasswordSerializer
+from backend.serializers import AnswerSerializer, UserSerializer, LevelSerializer, PlayerSerializer, CreateUserSerializer, LoginUserSerializer, ChangePasswordSerializer
 
 
 def checkRadius(lat, long, level):
@@ -96,9 +96,11 @@ class ChangePasswordAPI(generics.GenericAPIView):
 
     def post(self, request, *args, **kwargs):
         user_instance = request.user
-        serializer = self.get_serializer(instance=user_instance, data=request.data)
+        serializer = self.get_serializer(
+            instance=user_instance, data=request.data)
         serializer.is_valid(raise_exception=True)
-        user = serializer.update(instance=user_instance, validated_data=serializer.validated_data)
+        user = serializer.update(
+            instance=user_instance, validated_data=serializer.validated_data)
         return Response({
             "user": UserSerializer(user, context=self.get_serializer_context()).data,
             "token": AuthToken.objects.create(user)
@@ -139,37 +141,44 @@ class GetLevel(APIView):
                 return Response({"level": "ALLDONE"})
             return Response({"data": None})
 
+
 class GetLevelClues(APIView):
     permission_classes = [permissions.IsAuthenticated, ]
-    
+
     def get(self, request, format=None):
         try:
             level_no = request.query_params.get("level_no", None)
             if not level_no:
                 return Response({"data": None, "msg": "Level not provided"})
             level_no = int(level_no)
-            
+
             player = Player.objects.get(user=request.user)
             current_level = player.current_level
             if (current_level+1 < level_no):
                 return Response({"data": None, "msg": "Level not unlocked"})
 
             level = Level.objects.get(level_no=level_no)
-            clues = Clue.objects.filter(level=level) # get clues for the level
-            rclues = [] # response clues
+            clues = Clue.objects.filter(level=level)  # get clues for the level
+            rclues = []  # response clues
             for c in clues:
                 if c in player.unlocked_clues.all():
                     if not c.image:
-                        rclues.append([c.clue_no, c.title, c.text, "U", None]) # L or U is state Locked or Unlocked
+                        # L or U is state Locked or Unlocked
+                        rclues.append([c.clue_no, c.title, c.text, "U", None])
                     else:
-                        rclues.append([c.clue_no, c.title, c.text, "U", c.image.url]) # L or U is state Locked or Unlocked
+                        # L or U is state Locked or Unlocked
+                        rclues.append(
+                            [c.clue_no, c.title, c.text, "U", c.image.url])
                 else:
                     if not c.image:
-                        rclues.append([c.clue_no, c.title, None, "L", None]) # L or U is state Locked or Unlocked
+                        # L or U is state Locked or Unlocked
+                        rclues.append([c.clue_no, c.title, None, "L", None])
                     else:
-                        rclues.append([c.clue_no, c.title, None, "L", c.image.url]) # L or U is state Locked or Unlocked
-            return Response({"data" : rclues})
-        
+                        # L or U is state Locked or Unlocked
+                        rclues.append(
+                            [c.clue_no, c.title, None, "L", c.image.url])
+            return Response({"data": rclues})
+
         except ValueError:
             return Response({"data": None, "msg": "Level must be an integer"})
         except Player.DoesNotExist:
@@ -189,23 +198,31 @@ class GetClues(APIView):
         try:
             player = Player.objects.get(user=request.user)
             current_level = player.current_level
-           
+
             rclues = []  # response clues
-            for l_no in range(0,current_level+2):
+            for l_no in range(0, current_level+2):
                 lvl = Level.objects.filter(level_no=l_no).first()
                 if lvl:
                     clu = Clue.objects.filter(level=lvl)
                     for c in clu:
                         if c in player.unlocked_clues.all():
                             if not c.image:
-                                rclues.append([c.clue_no, c.title, c.text, "U", None])  # L or U is state Locked or Unlocked
-                            else: 
-                                rclues.append([c.clue_no, c.title, c.text, "U", c.image.url])  # L or U is state Locked or Unlocked
+                                # L or U is state Locked or Unlocked
+                                rclues.append(
+                                    [c.clue_no, c.title, c.text, "U", None])
+                            else:
+                                # L or U is state Locked or Unlocked
+                                rclues.append(
+                                    [c.clue_no, c.title, c.text, "U", c.image.url])
                         else:
                             if not c.image:
-                                rclues.append([c.clue_no, c.title, None, "L", None])  # L or U is state Locked or Unlocked
-                            else: 
-                                rclues.append([c.clue_no, c.title, None, "L", c.image.url])  # L or U is state Locked or Unlocked
+                                # L or U is state Locked or Unlocked
+                                rclues.append(
+                                    [c.clue_no, c.title, None, "L", None])
+                            else:
+                                # L or U is state Locked or Unlocked
+                                rclues.append(
+                                    [c.clue_no, c.title, None, "L", c.image.url])
             return Response({"data": rclues})
 
         except ValueError:
@@ -227,7 +244,7 @@ class UnlockClue(APIView):
             clue_no = request.query_params.get("clue_no", None)
             if not (level_no and clue_no):
                 return Response({"data": None, "msg": "Level or Clue not provided"})
-            
+
             level_no = int(level_no)
             clue_no = int(clue_no)
 
@@ -237,8 +254,9 @@ class UnlockClue(APIView):
                 return Response({"data": None, "msg": "Level not unlocked"})
 
             level = Level.objects.get(level_no=level_no)
-            clue = Clue.objects.filter(level=level, clue_no=clue_no).first()  # get clues for the level
-            if (clue.unlock_price<=player.coins):
+            # get clues for the level
+            clue = Clue.objects.filter(level=level, clue_no=clue_no).first()
+            if (clue.unlock_price <= player.coins):
                 if clue:
                     player.unlocked_clues.add(clue)
                     player.coins -= clue.unlock_price
@@ -247,7 +265,7 @@ class UnlockClue(APIView):
                 else:
                     return Response({"data": None, "msg": "Requested Clue dosen't exist for this Level"})
             else:
-                return Response({'data':None, "msg": "Not enough coins"})
+                return Response({'data': None, "msg": "Not enough coins"})
 
         except ValueError:
             return Response({"data": None, "msg": "Level and Clue must be an integer"})
@@ -274,9 +292,13 @@ class SubmitLevelAns(APIView):
             except (Player.DoesNotExist, Level.DoesNotExist):
                 player, level = None, None
             if player and (_ans == level.ans) and (player.current_level == level.level_no-1):
-                player.map_qs = True
+                level_clues = Clue.objects.filter(level=level)
+                for clue in level_clues:
+                    player.unlocked_clues.add(clue)
+
+                # player.save()
+                # player.map_qs = True
                 level.save()
-                player.save()
                 msg = {"success": True}
 
         return Response(msg)
@@ -307,12 +329,16 @@ class SubmitLocation(APIView):
                 player.current_level += 1
                 # player.map_qs = False
                 # player.score += level.points
+                level_answered = Level.objects.get(level_no=_level)
+                Answer.objects.create(
+                    player=player, level=level_answered, lat=_lat, long=_long)
                 player.last_solve = datetime.datetime.now()
                 level.save()
                 player.save()
                 # updateRank()
                 msg = {"success": True}
         return Response(msg)
+
 
 class FinalText(APIView):
     permission_classes = [permissions.IsAuthenticated, ]
@@ -351,3 +377,18 @@ def leaderboard(req):
 
     data = json.dumps(api_data)
     return HttpResponse(data, content_type='application/json')
+
+
+class GetPlayerAnswers(APIView):
+    permission_classes = [permissions.IsAuthenticated, ]
+
+    def get(self, request, format=None):
+        try:
+            player = Player.objects.get(user=request.user)
+            answers = Answer.objects.filter(player=player)
+            serializer = AnswerSerializer(answers, many=True)
+            msg = "Success"
+            return Response({"data": serializer.data, "msg": msg})
+        except:
+            msg = "Player not found"
+            return Response({"data": None, "msg": msg})
